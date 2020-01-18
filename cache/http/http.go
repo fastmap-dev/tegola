@@ -3,10 +3,9 @@ package http
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
-	"path"
-	"strconv"
 
 	"github.com/go-spatial/tegola"
 	"github.com/go-spatial/tegola/cache"
@@ -70,7 +69,7 @@ type Cache struct {
 // if there is a hit. the second argument denotes a hit or miss
 // so the consumer does not need to sniff errors for cache read misses
 func (fc *Cache) Get(key *cache.Key) ([]byte, bool, error) {
-	requestURL := path.Join(fc.URL, strconv.FormatUint(uint64(key.Z), 10), strconv.FormatUint(uint64(key.Z), 10), strconv.FormatUint(uint64(key.Y), 10))
+	requestURL := fmt.Sprintf("%s/%d/%d/%d", fc.URL, key.Z, key.X, key.Y)
 
 	// Get the data
 	resp, err := http.Get(requestURL)
@@ -94,7 +93,7 @@ func (fc *Cache) Set(key *cache.Key, val []byte) error {
 		return nil
 	}
 
-	requestURL := path.Join(fc.URL, strconv.FormatUint(uint64(key.Z), 10), strconv.FormatUint(uint64(key.Z), 10), strconv.FormatUint(uint64(key.Y), 10))
+	requestURL := fmt.Sprintf("%s/%d/%d/%d", fc.URL, key.Z, key.X, key.Y)
 	resp, err := http.Post(requestURL, "image/png", bytes.NewBuffer(val))
 
 	if err != nil {
@@ -108,7 +107,7 @@ func (fc *Cache) Set(key *cache.Key, val []byte) error {
 // Purge request
 func (fc *Cache) Purge(key *cache.Key) error {
 	var err error
-	requestURL := path.Join(fc.URL, strconv.FormatUint(uint64(key.Z), 10), strconv.FormatUint(uint64(key.Z), 10), strconv.FormatUint(uint64(key.Y), 10))
+	requestURL := fmt.Sprintf("%s/%d/%d/%d", fc.URL, key.Z, key.X, key.Y)
 	req, err := http.NewRequest("DELETE", requestURL, nil)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
