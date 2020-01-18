@@ -77,29 +77,20 @@ func (fc *Cache) Get(key *cache.Key) ([]byte, bool, error) {
 		return nil, false, err
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, false, err
+	if resp.StatusCode != 200 {
+		return nil, false, nil
 	}
+	body, err := ioutil.ReadAll(resp.Body)
 	return body, true, nil
 }
 
 // Set data to cache
 func (fc *Cache) Set(key *cache.Key, val []byte) error {
-	var err error
-
-	// check for maxzoom
-	if key.Z > fc.MaxZoom {
-		return nil
-	}
-
-	requestURL := fmt.Sprintf("%s/%d/%d/%d", fc.URL, key.Z, key.X, key.Y)
-	resp, err := http.Post(requestURL, "image/png", bytes.NewBuffer(val))
-
+	strURL := fmt.Sprintf("%s/%d/%d/%d", fc.URL, key.Z, key.X, key.Y)
+	resp, err := http.Post(strURL, "binary/octet-stream", bytes.NewReader(val))
 	if err != nil {
 		return err
 	}
-
 	defer resp.Body.Close()
 	return nil
 }
